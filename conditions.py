@@ -241,7 +241,7 @@ def evaluate_conditions(frame, frame2, faces, center, axes):
         # Hair detection condition
         hair_detected = check_hair(frame2, face_landmarks, frame_width, frame_height)
         if hair_detected:
-            return False, "Please remove hair from the defined region."
+            return False, "Please remove hair from forehead region."
 
 
     return True, "Conditions met - Take a photo"

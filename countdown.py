@@ -3,6 +3,11 @@ import cv2
 import time
 from utilities import draw_countdown_text, draw_text_on_frame
 from effects import apply_color_effect
+import subprocess
+import time
+import threading
+import tkinter as tk
+import os
 
 def countdown_sequence(cap, frame, center, axes, process_frame, frame_size):
     """
@@ -69,10 +74,44 @@ def countdown_sequence(cap, frame, center, axes, process_frame, frame_size):
 
     # If countdown reaches 0 and conditions are met, capture the photo
     if countdown == 0 and conditions_met:
-        # Save the captured image to a file with reduced quality (50%)
-        cv2.imwrite('./capturedImage/captured_image.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 50])
+        # Save the captured image to a file with reduced quality
+        # Create new directory
+        timestamp = time.strftime("%Y%m%d-%H%M%S")
+        output_dir = f'./model_{timestamp}'
+        os.makedirs(output_dir, exist_ok=True)
+
+        image_path = os.path.join('./capturedImage/captured_image.jpg')
+        output_obj_path = output_dir
+        cv2.imwrite('./capturedImage/captured_image.jpg', frame)
         print("Picture taken and saved as 'captured_image.jpg'.")
 
         # Apply a scan effect after capturing the image
         from utilities import scan_effect
-        scan_effect(frame, frame_size)  # Trigger the scanning effect animation
+        model_generation_done = False
+
+        def run_model_generation():
+            """Runs the 3D model pipeline and updates the status."""
+            nonlocal model_generation_done
+            try:
+                subprocess.run(['python', 'pipeline.py', '-i', image_path, '-o', output_obj_path], check=True)
+                print(f"3D model generated and files saved in '{output_dir}'")
+                model_generation_done = True  # Set status to True when the process finishes
+            except subprocess.CalledProcessError as e:
+                print(f"Error in generating 3D model: {e}")
+                model_generation_done = True  # Even on error, consider the process done
+
+       # Start the model generation in a separate thread
+        model_thread = threading.Thread(target=run_model_generation)
+        model_thread.start()
+
+        # Keep showing the animation until the model generation is done
+        while not model_generation_done:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            scan_effect(frame, frame_size)
+
+        model_thread.join()  # Ensure the model generation is fully completed
+
+        # Close the face scan window
+        cv2.destroyAllWindows()
