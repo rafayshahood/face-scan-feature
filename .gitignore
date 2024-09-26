@@ -1,0 +1,4 @@
+face_scan_env/
+.vscode
+*.dmg
+.DS_Store
