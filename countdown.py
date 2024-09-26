@@ -93,7 +93,7 @@ def countdown_sequence(cap, frame, center, axes, process_frame, frame_size):
             """Runs the 3D model pipeline and updates the status."""
             nonlocal model_generation_done
             try:
-                subprocess.run(['python', 'pipeline.py', '-i', image_path, '-o', output_obj_path], check=True)
+                subprocess.run(['python', './3dmodel/pipeline.py', '-i', image_path, '-o', output_obj_path], check=True)
                 print(f"3D model generated and files saved in '{output_dir}'")
                 model_generation_done = True  # Set status to True when the process finishes
             except subprocess.CalledProcessError as e:
