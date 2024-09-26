@@ -29,8 +29,8 @@ This project implements a face scan feature using OpenCV and MediaPipe, combined
    git clone https://github.com/rafayshahood/face-scan-feature.git
    cd face-scan-feature
 
-3. Download the SF-Pro.dmg font file: The SF-Pro.dmg file exceeds GitHub's size limit. Please download it     
-   from Google Drive: https://drive.google.com/file/d/1cqpi7NKVau0ZCeupeJjcHmL3sbtBoHkX/view?usp=sharing and place it in the fonts/ directory.
+3. (Optional )Download the SF-Pro.dmg font file: The SF-Pro.dmg file exceeds GitHub's size limit. Please 
+   download it from Google Drive: https://drive.google.com/file/d/1cqpi7NKVau0ZCeupeJjcHmL3sbtBoHkX/view?usp=sharing and place it in the fonts/ directory. 
    
 3. pip install -r requirements.txt
 
@@ -38,19 +38,3 @@ This project implements a face scan feature using OpenCV and MediaPipe, combined
 4. Run the face scan feature:
     python main.py
 
-
-# Project Structure
-
-face-scan-3d-model/
-│
-├── main.py               # Main script to run the face scan feature
-├── README.md             # Project documentation
-├── requirements.txt      # Required libraries for the project
-├── captureButton.py      # Handles the capture button logic
-├── countdown.py          # Handles countdown logic and image capture
-├── conditions.py         # Defines conditions for the face scan (lighting, hair, etc.)
-├── displayFrame.py       # Handles frame processing and displaying
-├── loadingFrame.py       # Handles frame processing and displaying of loading frame
-├── maskedFrame.py        # Handles frame processing 
-├── effects.py            # Visual effects for the face scan
-├── utilities.py          # Utility functions (e.g., scan effect)
