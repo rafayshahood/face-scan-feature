@@ -28,7 +28,7 @@ def is_front_facing(landmarks):
     vertical_nose_dist = np.abs(nose.y - adjusted_eye_mid_y)
 
     # Check horizontal and vertical alignment
-    front_facing_horizontal = nose_midpoint_dist < eye_dist * 0.2
+    front_facing_horizontal = nose_midpoint_dist < eye_dist * 0.3
     front_facing_vertical = vertical_nose_dist < eye_dist * 0.3
 
     # Return True if both horizontal and vertical conditions are met
@@ -118,7 +118,7 @@ def check_hair(frame, face_landmarks, frame_width, frame_height):
     right_eye = landmarks[right_eye_idxs].mean(axis=0)
     midpoint = ((left_eye + right_eye) / 2).astype(int)
     eye_distance = np.linalg.norm(left_eye - right_eye)
-    ellipse_width = int(eye_distance * 1.9)
+    ellipse_width = int(eye_distance * 1.75)
     ellipse_height = int(eye_distance * 0.8)
 
     # Shift the midpoint upwards
@@ -143,7 +143,7 @@ def check_hair(frame, face_landmarks, frame_width, frame_height):
             # Calculate a point 11% below the center of the bounding box
             box_center = ((x1_full + x2_full) // 2, (y1 + y2) // 2)
             box_height = y2 - y1
-            point_below_center = (box_center[0], box_center[1] + int(box_height * 0.09))
+            point_below_center = (box_center[0], box_center[1] + int(box_height * 0.14))
 
             # Check if any bounding box corner or 11% below center point is inside the ellipse
             corners = [(x1_full, y1), (x2_full, y1), (x1_full, y2), (x2_full, y2)]
@@ -218,8 +218,7 @@ def evaluate_conditions(frame, frame2, faces, center, axes):
     frame_height,frame_width = frame.shape[:2]  # Extract the frame dimensions
     # Check for glasses
     # # Perform headwear detection (this comes after glasses detection)
-    headwear_detected = check_headwear(frame2)
-    glasses_detected = check_glasses(frame2)
+
     # # Evaluate conditions for each detected face
     # Evaluate conditions for each detected face
     for face_landmarks in faces:
@@ -228,20 +227,26 @@ def evaluate_conditions(frame, frame2, faces, center, axes):
         # Check if the face is front-facing
         front_facing = is_front_facing(face_landmarks.landmark)
 
+
         if not face_inside_oval:
             return False, "Position your face inside the oval"
         if not front_facing:
             return False, "Make your face front-facing"
-        elif headwear_detected:
-            return False, "Please remove headwear"
-        elif glasses_detected:
-            return False, "Please remove glasses"
 
 
+    glasses_detected = check_glasses(frame2)
+    headwear_detected = check_headwear(frame2)
+    if glasses_detected:
+        return False, "Please remove glasses"
+    elif headwear_detected:
+        return False, "Please remove headwear"
+
+
+    for face_landmarks in faces:
         # Hair detection condition
-        hair_detected = check_hair(frame2, face_landmarks, frame_width, frame_height)
+        hair_detected = check_hair(frame, face_landmarks, frame_width, frame_height)
+
         if hair_detected:
             return False, "Please remove hair from forehead region."
-
 
     return True, "Conditions met - Take a photo"

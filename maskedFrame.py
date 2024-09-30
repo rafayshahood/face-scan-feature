@@ -28,9 +28,6 @@ def create_masked_frame(frame, oval_size_ratio):
 
     # Apply the mask to the frame, keeping the original frame inside the oval
     masked_frame = np.where(mask == 255, frame, frame)  # No blurring outside the oval (optional)
-    print(center, axes)
-    print(f"Ellipse center: {center}, Axes: {axes}, Frame size: {masked_frame.shape}")
-    print(f"Ellipse center: {center}, Axes: {axes}, Frame size: {frame.shape}")
     # Return the masked frame, oval center, and oval dimensions
     return masked_frame, center, axes
 

@@ -65,10 +65,14 @@ def process_frame(frame):
 
     # Convert the image to RGB for MTCNN face detection
     img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    img_rgb2 = cv2.cvtColor(original_frame, cv2.COLOR_BGR2RGB)
+
     # faces = detector_mtcnn.detect_faces(img_rgb)
 
     # Perform face detection with MediaPipe
-    result = face_mesh.process(frame)
+    result = face_mesh.process(img_rgb)
+    original_frame = cv2.cvtColor(original_frame, cv2.COLOR_BGR2RGB)
+
 
     # Extract face landmarks
     faces = []

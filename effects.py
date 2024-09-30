@@ -29,7 +29,7 @@ def apply_sketch_filter(image, invert_colors=False):
     # Convert the single-channel sketch back to a 3-channel image (BGR format)
     return cv2.cvtColor(sketch, cv2.COLOR_GRAY2BGR)
 
-def apply_color_effect(image, color):
+def apply_color_effect(image, axes, color):
     """
     Apply a color overlay effect to the image, with an oval mask keeping the original content visible.
     
@@ -43,7 +43,6 @@ def apply_color_effect(image, color):
     # Create a mask with an elliptical shape (oval) in the center
     mask = np.zeros_like(image, dtype=np.uint8)
     center = (image.shape[1] // 2, image.shape[0] // 2)  # Center of the oval
-    axes = (int(image.shape[1] * 0.3), int(image.shape[0] * 0.4))  # Size of the oval
     cv2.ellipse(mask, center, axes, 0, 0, 360, (255, 255, 255), -1)  # Draw a white-filled oval in the mask
 
     # Invert the mask (so the oval remains visible while the rest is colored)

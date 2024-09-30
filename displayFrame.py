@@ -25,7 +25,7 @@ def process_display_frame(frame, center, axes, conditions_met, prompt):
     cv2.ellipse(display_frame, center, axes, 0, 0, 360, bgr_color, 2)
 
     # Apply a color effect to highlight the frame based on conditions
-    display_frame = apply_color_effect(display_frame, bgr_color)
+    display_frame = apply_color_effect(display_frame, axes, bgr_color)
 
     # If a prompt is provided (e.g., instructions), draw the text on the frame
     if prompt:

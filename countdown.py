@@ -40,7 +40,7 @@ def countdown_sequence(cap, frame, center, axes, process_frame, frame_size):
             bgr_color = (oval_color[2], oval_color[1], oval_color[0])
             
             # Apply a color effect and display the error prompt
-            display_frame = apply_color_effect(display_frame, bgr_color)
+            display_frame = apply_color_effect(display_frame, axes, bgr_color)
             display_frame = draw_text_on_frame(
                 display_frame,
                 text=prompt,  # Display the prompt message
