@@ -23,6 +23,28 @@ This repository contains a face scan feature that uses FastAPI as the backend an
 ---
 
 ## Setup Instructions
+## Python 3.10 and Tkinter Installation Instructions
+
+Before proceeding with the project setup, make sure you have Python 3.10 and Tkinter installed on your system. Follow the instructions below based on your operating system:
+
+### macOS
+For macOS, you can use **Homebrew** to install Python and Tkinter:
+
+1. **Install Python 3.10 and tkinter**:
+   ```bash
+   brew install python@3.10
+   brew install python-tk@3.10
+   python3.10 --version
+
+### Ubuntu/Linux
+1. **Install Python 3.10 and tkinter**:
+   ```bash
+   sudo apt update
+   sudo apt install python3.10
+   sudo apt-get install python3-tk
+   python3.10 --version
+
+
 
 ### 1. Clone the Repository
 Start by cloning the repository from GitHub:
