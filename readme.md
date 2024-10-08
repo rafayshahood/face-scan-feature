@@ -6,7 +6,6 @@ This repository contains a face scan feature that uses FastAPI as the backend an
 ## Table of Contents
 - [Features](#features)
 - [Setup Instructions](#setup-instructions)
-- [Running the FastAPI Backend](#running-the-fastapi-backend)
 - [Testing the Application](#testing-the-application)
 - [Common Issues](#common-issues)
 - [Technologies Used](#technologies-used)
@@ -56,24 +55,6 @@ cd fastapi_backend
 uvicorn main:app --reload
 ```
 The API will be running at `http://127.0.0.1:8000`.
-
----
-
-## Running the FastAPI Backend
-
-Once the backend is set up, you can use API calls to process frames and detect various conditions (e.g., facial landmarks, headwear detection).
-
-- **API Endpoints**:
-    - `/detect_face/`: Detects if a face is present in the frame.
-    - `/evaluate_conditions/`: Evaluates multiple conditions such as lighting, facial landmark detection, headwear, and glasses.
-  
-- **Sample API Call**:
-    - You can use tools like Postman or `curl` to make API requests to test the backend.
-  
-  Example using `curl`:
-    ```bash
-    curl -X POST "http://127.0.0.1:8000/evaluate_conditions/" -F "file=@path_to_frame_image.jpg"
-    ```
 
 ---
 
