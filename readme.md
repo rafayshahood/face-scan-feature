@@ -50,7 +50,7 @@ For macOS, you can use **Homebrew** to install Python and Tkinter:
 Start by cloning the repository from GitHub:
 ```bash
 git clone https://github.com/rafayshahood/face-scan-feature.git
-cd face_scan
+cd face-scan-feature
 ```
 
 ### 2. Set Up a Virtual Environment
