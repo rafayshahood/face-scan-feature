@@ -30,23 +30,3 @@ def create_masked_frame(frame, oval_size_ratio):
     masked_frame = np.where(mask == 255, frame, frame)  # No blurring outside the oval (optional)
     # Return the masked frame, oval center, and oval dimensions
     return masked_frame, center, axes
-
-
-def visualize_oval(frame, center, axes):
-    """
-    Visualize the oval on the given frame.
-    :param frame: The frame where the oval is drawn.
-    :param center: Center of the oval.
-    :param axes: Axes dimensions of the oval.
-    """
-    # Clone the frame so you can draw on it
-    frame_copy = frame.copy()
-    
-    # Draw the oval on the frame
-    cv2.ellipse(frame_copy, center, axes, 0, 0, 360, (0, 255, 0), 2)  # Green oval
-    
-    # Display the frame with the oval
-    cv2.imshow('Oval Visualization', frame_copy)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-

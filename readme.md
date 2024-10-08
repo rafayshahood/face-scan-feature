@@ -1,40 +1,129 @@
-# Face Scan and 3D Model Generation
 
-## Overview
-This project implements a face scan feature using OpenCV and MediaPipe, combined with YOLOv5 for multiple detection. It integrates with a 3D Model App to generate `.obj` and `.gltf` files based on the captured image. The face scan checks various conditions such as lighting, headwear, glasses, and hair before capturing the image.
+# Face Scan Feature
+
+This repository contains a face scan feature that uses FastAPI as the backend and various models such as YOLOv5 and MediaPipe for detecting facial landmarks, headwear, glasses, and other conditions like mouth being closed.
+
+## Table of Contents
+- [Features](#features)
+- [Setup Instructions](#setup-instructions)
+- [Running the FastAPI Backend](#running-the-fastapi-backend)
+- [Testing the Application](#testing-the-application)
+- [Common Issues](#common-issues)
+- [Technologies Used](#technologies-used)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
 
 ## Features
-- Face detection and facial landmark tracking using MediaPipe.
-- YOLOv5 for hair, glasses, and headwear detection.
-- Integration with a 3D model generation pipeline.
-- Real-time webcam interface.
-- Capturing photo when all coniditions met
-- `.obj` file preview with Accept/Decline functionality.
+- **Facial Landmark Detection**: Using MediaPipe to detect face and key facial landmarks.
+- **Headwear and Glasses Detection**: Using YOLOv5 models for headwear and glasses detection.
+- **Condition Validation**: Detecting whether the mouth is closed, and validating if the face is inside a defined oval region.
+- **Backend with FastAPI**: API-based architecture for efficient processing of frames.
+
+---
 
 ## Setup Instructions
 
-### Prerequisites
-- Python 3.8+
-- OpenCV
-- MediaPipe
-- YOLOv5
-- Open3D (for .obj file preview)
+### 1. Clone the Repository
+Start by cloning the repository from GitHub:
+```bash
+git clone https://github.com/rafayshahood/face-scan-feature.git
+cd face_scan
+```
 
-### Installation
-1.  python3 -m venv venv
-   source venv/bin/activate
+### 2. Set Up a Virtual Environment
+It is recommended to create and use a virtual environment to manage project dependencies:
 
-2. Clone the repository:
-   ```bash
-   git clone https://github.com/rafayshahood/face-scan-feature.git
-   cd face-scan-feature
+#### Using Python `venv`:
+```bash
+python3.10 -m venv face_scan_env
+source face_scan_env/bin/activate  # On Windows: face_scan_env\Scripts\activate
+```
 
-3. (Optional )Download the SF-Pro.dmg font file: The SF-Pro.dmg file exceeds GitHub's size limit. Please 
-   download it from Google Drive: https://drive.google.com/file/d/1cqpi7NKVau0ZCeupeJjcHmL3sbtBoHkX/view?usp=sharing and place it in the fonts/ directory. 
+### 3. Install Project Dependencies
+Once the virtual environment is active, install the required libraries using the `requirements.txt` file:
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Set Up the FastAPI Backend
+Make sure the backend server is running to handle requests for condition checks, headwear, and glasses detection.
+
+#### Start the FastAPI Server:
+```bash
+cd fastapi_backend
+uvicorn main:app --reload
+```
+The API will be running at `http://127.0.0.1:8000`.
+
+---
+
+## Running the FastAPI Backend
+
+Once the backend is set up, you can use API calls to process frames and detect various conditions (e.g., facial landmarks, headwear detection).
+
+- **API Endpoints**:
+    - `/detect_face/`: Detects if a face is present in the frame.
+    - `/evaluate_conditions/`: Evaluates multiple conditions such as lighting, facial landmark detection, headwear, and glasses.
+  
+- **Sample API Call**:
+    - You can use tools like Postman or `curl` to make API requests to test the backend.
+  
+  Example using `curl`:
+    ```bash
+    curl -X POST "http://127.0.0.1:8000/evaluate_conditions/" -F "file=@path_to_frame_image.jpg"
+    ```
+
+---
+
+## Testing the Application
+1. **Ensure the Backend is Running**:
+   Ensure the FastAPI server is running on the correct port.
    
-3. pip install -r requirements.txt
+2. **Run the Face Scan Feature**:
+   If the backend is running and you have the face scan feature from main directory. Inside the face_scan run:
+   ```bash
+   python main.py
+   ```
 
+3. **View Results**:
+   A pop up window will open with real time webcam which will check multiple conditions (e.g. checks for headwear, glasses, mouth open/close,lighting, face inside oval and front facing) that will be returned as responses from the API.
 
-4. Run the face scan feature:
-    python main.py
+---
 
+## Common Issues
+
+1. **Missing Dependencies**:
+   If you encounter issues related to missing libraries, ensure all dependencies are installed using the `requirements.txt` file.
+
+2. **Python Version**:
+   This project requires Python 3.10. Ensure you are using the correct Python version by running:
+   ```bash
+   python --version
+   ```
+
+3. **FastAPI or Uvicorn Errors**:
+   Ensure that FastAPI and Uvicorn are installed and the correct version is being used. Check the `requirements.txt` file.
+
+---
+
+## Technologies Used
+
+- **FastAPI**: Backend framework for creating the API.
+- **YOLOv5**: Object detection models used for headwear and glasses detection.
+- **MediaPipe**: Facial landmark detection library for detecting face positions and features.
+- **OpenCV**: Used for image processing and handling webcam/video input.
+- **PyTorch**: Framework used for deep learning models like YOLOv5.
+
+---
+
+## Contributing
+
+Contributions are welcome! Please fork this repository and submit a pull request for any changes or improvements.
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
