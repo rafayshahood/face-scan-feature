@@ -102,7 +102,7 @@ def is_front_facing(face_landmarks):
 
     eye_dist = np.linalg.norm(np.array([right_eye['x'], right_eye['y']]) - np.array([left_eye['x'], left_eye['y']]))
     eye_mid_y = (left_eye['y'] + right_eye['y']) / 2
-    adjusted_eye_mid_y = eye_mid_y + eye_dist * 0.6
+    adjusted_eye_mid_y = eye_mid_y + eye_dist * 0.5
 
     nose_midpoint_dist = np.abs(nose['x'] - (left_eye['x'] + right_eye['x']) / 2)
     vertical_nose_dist = np.abs(nose['y'] - adjusted_eye_mid_y)

@@ -40,6 +40,10 @@ async def evaluate_conditions(file: UploadFile = File(...)):
     img_rgb = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)  # Original frame for face detection
     result = face_mesh.process(img_rgb)
 
+    # # Step 1: Check lighting condition
+    if not check_lighting(image_np):
+        return {"conditions_met": False, "prompt": "Increase lighting"}
+
     faces = []
     if result.multi_face_landmarks:
         for face_landmarks in result.multi_face_landmarks:
@@ -50,17 +54,13 @@ async def evaluate_conditions(file: UploadFile = File(...)):
 
     face_landmarks = faces[0]
 
-    # # Step 1: Check lighting condition
-    if not check_lighting(image_np):
-        return {"conditions_met": False, "prompt": "Increase lighting"}
-
     # # Step 2: Check if face is inside oval
-    # if not is_face_inside_oval(face_landmarks, center, axes, frame_width, frame_height):
-        # return {"conditions_met": False, "prompt": "Position your face inside the oval"}
+    if not is_face_inside_oval(face_landmarks, center, axes, frame_width, frame_height):
+        return {"conditions_met": False, "prompt": "Position your face inside the oval"}
 
     # # Step 3: Check if the face is front-facing
-    # if not is_front_facing(face_landmarks):
-    #     return {"conditions_met": False, "prompt": "Make your face front-facing"}
+    if not is_front_facing(face_landmarks):
+        return {"conditions_met": False, "prompt": "Make your face front-facing"}
 
     # # Step 4: Check mouth closed condition
     if not is_mouth_closed(face_landmarks, frame_height):
