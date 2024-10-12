@@ -73,11 +73,11 @@ async def evaluate_conditions(file: UploadFile = File(...)):
         return {"conditions_met": False, "prompt": "Please close your mouth"}
 
     # # Step 6: Check glasses and headwear on the original frame
-    # if check_glasses(glasses_frame):
-    #     return {"conditions_met": False, "prompt": "Please remove glasses"}
+    if check_glasses(glasses_frame):
+        return {"conditions_met": False, "prompt": "Please remove glasses"}
 
-    # if check_headwear(headwear_frame):
-    #     return {"conditions_met": False, "prompt": "Please remove headwear"}
+    if check_headwear(headwear_frame):
+        return {"conditions_met": False, "prompt": "Please remove headwear"}
 
     # Step 5: Check hair detection (new condition, run after all others)
     if detect_hair_in_forehead(image_np, face_landmarks):

@@ -11,10 +11,10 @@ hair_model = None
 
 def load_models():
     global glasses_model, headwear_model, hair_model
-    # if glasses_model is None:
-    #     glasses_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./models/glasses_trained.pt', force_reload=True)
-    # if headwear_model is None:
-    #     headwear_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./models/headwear2.pt', force_reload=True)
+    if glasses_model is None:
+        glasses_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./models/glasses_trained.pt', force_reload=True)
+    if headwear_model is None:
+        headwear_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./models/headwear2.pt', force_reload=True)
     if hair_model is None:
         hair_model = YOLO('./models/hairseg-v8.pt')
 
@@ -67,7 +67,7 @@ def detect_hair_in_forehead(image_np, face_landmarks, overlap_threshold=1):
 
     # Calculate the ellipse width and height for eyes
     eye_distance = np.linalg.norm(left_eye - right_eye)
-    ellipse_width = int(eye_distance * 1.70)
+    ellipse_width = int(eye_distance * 1.9)
     ellipse_height = int(eye_distance * 1)
 
     # Shift the midpoint upwards to increase the height above the eyes
