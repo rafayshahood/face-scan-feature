@@ -5,12 +5,27 @@ from utillities import resize_and_pad_image
 from utillities import resize_and_pad_image2
 from ultralytics import YOLO
 
+glasses_model = None
+headwear_model = None
+hair_model = None
 
-# Load YOLOv5 models for glasses and headwear detection
-glasses_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./models/glasses_trained.pt', force_reload=True)
-headwear_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./models/headwear2.pt', force_reload=True)
-# Load YOLOv8 hair segmentation model
-hair_model = YOLO('./models/hairseg-v8.pt')
+def load_models():
+    global glasses_model, headwear_model, hair_model
+    if glasses_model is None:
+        glasses_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./models/glasses_trained.pt', force_reload=True)
+    if headwear_model is None:
+        headwear_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./models/headwear2.pt', force_reload=True)
+    if hair_model is None:
+        hair_model = YOLO('./models/hairseg-v8.pt')
+
+# Call load_models() once at server startup (e.g., in the FastAPI startup event)
+
+
+# # Load YOLOv5 models for glasses and headwear detection
+# glasses_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./models/glasses_trained.pt', force_reload=True)
+# headwear_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./models/headwear2.pt', force_reload=True)
+# # Load YOLOv8 hair segmentation model
+# hair_model = YOLO('./models/hairseg-v8.pt')
 
 def detect_hair_in_forehead(image_np, face_landmarks, overlap_threshold=1):
 
@@ -52,7 +67,7 @@ def detect_hair_in_forehead(image_np, face_landmarks, overlap_threshold=1):
 
     # Calculate the ellipse width and height for eyes
     eye_distance = np.linalg.norm(left_eye - right_eye)
-    ellipse_width = int(eye_distance * 1.95)
+    ellipse_width = int(eye_distance * 1.70)
     ellipse_height = int(eye_distance * 1)
 
     # Shift the midpoint upwards to increase the height above the eyes

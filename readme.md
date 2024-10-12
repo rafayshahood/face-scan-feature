@@ -63,12 +63,15 @@ source face_scan_env/bin/activate  # On Windows: face_scan_env\Scripts\activate
 ```
 
 ### 3. Install Project Dependencies
-Once the virtual environment is active, install the required libraries using the `requirements.txt` file:
+Once the virtual environment is active, install the required libraries using the `requirements2.txt` file:
 ```bash
-pip install -r requirements.txt
+pip install -r requirements2.txt
 ```
+### 4. Dowload the font file
+Please download the fonts file from this drive link:https://drive.google.com/drive/folders/1aUH7TCR8o77L9E06n6LpTssa5sznIieR?usp=sharing
+Once it is downloaded please put it in fonts folder which is inside main directory. If fonts folders is not present please create one and add the downloaded fonts file there
 
-### 4. Set Up the FastAPI Backend
+### 5. Set Up the FastAPI Backend
 Make sure the backend server is running to handle requests for condition checks, headwear, and glasses detection.
 
 #### Start the FastAPI Server:

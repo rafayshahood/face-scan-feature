@@ -9,18 +9,24 @@ from models_and_conditions import (
     check_glasses,
     check_headwear,
     is_mouth_closed,
-    detect_hair_in_forehead
+    detect_hair_in_forehead,
+    load_models
 )
 from utillities import create_oval_mask
-
+import time
 app = FastAPI()
 
 # Initialize MediaPipe Face Mesh
 mp_face_mesh = mp.solutions.face_mesh
 face_mesh = mp_face_mesh.FaceMesh(static_image_mode=False, max_num_faces=1, refine_landmarks=True)
 
+@app.on_event("startup")
+def startup_event():
+    load_models()
+
 @app.post("/evaluate_conditions/")
 async def evaluate_conditions(file: UploadFile = File(...)):
+    start_time = time.time()
     image_data = await file.read()
     nparr = np.frombuffer(image_data, np.uint8)
     image_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -76,5 +82,10 @@ async def evaluate_conditions(file: UploadFile = File(...)):
     # Step 5: Check hair detection (new condition, run after all others)
     if detect_hair_in_forehead(image_np, face_landmarks):
         return {"conditions_met": False, "prompt": "Please remove hair from forehead"}
+
+    # Stop timing the process
+    end_time = time.time()
+    processing_time = end_time - start_time
+    print(f"Processing Time: {processing_time} seconds")
 
     return {"conditions_met": True, "prompt": "Conditions met - Take a photo"}
