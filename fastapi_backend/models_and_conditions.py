@@ -11,10 +11,10 @@ hair_model = None
 
 def load_models():
     global glasses_model, headwear_model, hair_model
-    if glasses_model is None:
-        glasses_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./models/glasses_trained.pt', force_reload=True)
-    if headwear_model is None:
-        headwear_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./models/headwear2.pt', force_reload=True)
+    # if glasses_model is None:
+    #     glasses_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./models/glasses_trained.pt', force_reload=True)
+    # if headwear_model is None:
+    #     headwear_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./models/headwear2.pt', force_reload=True)
     if hair_model is None:
         hair_model = YOLO('./models/hairseg-v8.pt')
 
