@@ -67,8 +67,8 @@ def detect_hair_in_forehead(image_np, face_landmarks, overlap_threshold=1):
 
     # Calculate the ellipse width and height for eyes
     eye_distance = np.linalg.norm(left_eye - right_eye)
-    ellipse_width = int(eye_distance * 1.9)
-    ellipse_height = int(eye_distance * 1)
+    ellipse_width = int(eye_distance * 1.95)
+    ellipse_height = int(eye_distance * 0.9)
 
     # Shift the midpoint upwards to increase the height above the eyes
     shifted_midpoint = (midpoint[0], midpoint[1] - int(ellipse_height * 0.3))
@@ -107,7 +107,7 @@ def is_mouth_closed(face_landmarks, frame_height):
 def check_lighting(image_np):
     gray_frame = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)
     mean_brightness = np.mean(gray_frame)
-    return mean_brightness > 100
+    return mean_brightness > 80
 
 
 def is_front_facing(face_landmarks):
@@ -117,13 +117,13 @@ def is_front_facing(face_landmarks):
 
     eye_dist = np.linalg.norm(np.array([right_eye['x'], right_eye['y']]) - np.array([left_eye['x'], left_eye['y']]))
     eye_mid_y = (left_eye['y'] + right_eye['y']) / 2
-    adjusted_eye_mid_y = eye_mid_y + eye_dist * 0.5
+    adjusted_eye_mid_y = eye_mid_y + eye_dist * 0.6
 
     nose_midpoint_dist = np.abs(nose['x'] - (left_eye['x'] + right_eye['x']) / 2)
     vertical_nose_dist = np.abs(nose['y'] - adjusted_eye_mid_y)
 
-    front_facing_horizontal = nose_midpoint_dist < eye_dist * 0.3
-    front_facing_vertical = vertical_nose_dist < eye_dist * 0.3
+    front_facing_horizontal = nose_midpoint_dist < eye_dist * 0.15
+    front_facing_vertical = vertical_nose_dist < eye_dist * 0.2
 
     return front_facing_horizontal and front_facing_vertical
 

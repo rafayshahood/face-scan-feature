@@ -33,6 +33,7 @@ async def evaluate_conditions(file: UploadFile = File(...)):
 
     glasses_frame = image_np.copy()
     headwear_frame = image_np.copy()
+    hair_frame = image_np.copy()
 
     # Calculate center and axes dynamically based on frame dimensions
     frame_height, frame_width = image_np.shape[:2]
@@ -69,18 +70,18 @@ async def evaluate_conditions(file: UploadFile = File(...)):
         return {"conditions_met": False, "prompt": "Make your face front-facing"}
 
     # # Step 4: Check mouth closed condition
-    if not is_mouth_closed(face_landmarks, frame_height):
-        return {"conditions_met": False, "prompt": "Please close your mouth"}
+    # if not is_mouth_closed(face_landmarks, frame_height):
+    #     return {"conditions_met": False, "prompt": "Please close your mouth"}
 
     # # Step 6: Check glasses and headwear on the original frame
-    if check_glasses(glasses_frame):
-        return {"conditions_met": False, "prompt": "Please remove glasses"}
+    # if check_glasses(glasses_frame):
+    #     return {"conditions_met": False, "prompt": "Please remove glasses"}
 
-    if check_headwear(headwear_frame):
-        return {"conditions_met": False, "prompt": "Please remove headwear"}
+    # if check_headwear(headwear_frame):
+    #     return {"conditions_met": False, "prompt": "Please remove headwear"}
 
-    # Step 5: Check hair detection (new condition, run after all others)
-    if detect_hair_in_forehead(image_np, face_landmarks):
+    # # Step 5: Check hair detection (new condition, run after all others)
+    if detect_hair_in_forehead(hair_frame, face_landmarks):
         return {"conditions_met": False, "prompt": "Please remove hair from forehead"}
 
     # Stop timing the process
