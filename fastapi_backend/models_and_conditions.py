@@ -67,8 +67,8 @@ def detect_hair_in_forehead(image_np, face_landmarks, overlap_threshold=1):
 
     # Calculate the ellipse width and height for eyes
     eye_distance = np.linalg.norm(left_eye - right_eye)
-    ellipse_width = int(eye_distance * 1.95)
-    ellipse_height = int(eye_distance * 0.9)
+    ellipse_width = int(eye_distance * 1.7)
+    ellipse_height = int(eye_distance * 0.95)
 
     # Shift the midpoint upwards to increase the height above the eyes
     shifted_midpoint = (midpoint[0], midpoint[1] - int(ellipse_height * 0.3))
