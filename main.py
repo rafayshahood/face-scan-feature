@@ -1,31 +1,16 @@
 # Import necessary libraries
 import cv2
-import tkinter as tk
-# from conditions import evaluate_conditions
 from loadingFrame import show_loading_frame
 from displayFrame import process_display_frame
 from maskedFrame import create_masked_frame
-from countdown import countdown_sequence  # Import the countdown logic
-from captureButton import draw_button, button_callback, update_button_state, is_button_pressed  # Import button logic
-import mediapipe as mp
+from countdown import countdown_sequence
+from captureButton import draw_button, button_callback, update_button_state, is_button_pressed 
 import time
 import requests
 
 
-# Initialize MediaPipe Face Mesh
-mp_face_mesh = mp.solutions.face_mesh
-face_mesh = mp_face_mesh.FaceMesh(static_image_mode=False, max_num_faces=1, refine_landmarks=True  )
-# Initialize the MTCNN detector for face and landmark detection
-
-# Fetch screen dimensions using tkinter for dynamic frame sizing
-root = tk.Tk()
-screen_width = root.winfo_screenwidth()  # Get screen width
-screen_height = root.winfo_screenheight()  # Get screen height
-root.destroy()
-
-
-frame_size = (int(640), int(480))  # 40% width, 100% height
-
+# Set frame size
+frame_size = (int(640), int(480))
 # Ratio for the oval size in the frame
 oval_size_ratio = (0.4, 0.8)
 
@@ -82,30 +67,9 @@ def process_frame(frame):
 
     # Create an oval mask around the face region
     original_frame = frame.copy()
+    # ellipse only for front end
     masked_frame, center, axes = create_masked_frame(frame, oval_size_ratio)
-
-
-    # Convert the image to RGB for MTCNN face detection
-    # img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    # img_rgb2 = cv2.cvtColor(original_frame, cv2.COLOR_BGR2RGB)
-
-    # faces = detector_mtcnn.detect_faces(img_rgb)
-
-    # Perform face detection with MediaPipe
-    # faces = detect_face_via_api(frame)
-
-    # result = face_mesh.process(img_rgb)
     original_frame = cv2.cvtColor(original_frame, cv2.COLOR_BGR2RGB)
-
-
-    # # Extract face landmarks
-    # faces = []
-    # if result.multi_face_landmarks:
-    #     for face_landmarks in result.multi_face_landmarks:
-    #         faces.append(face_landmarks)
-
-    # Evaluate conditions such as lighting, face positioning, etc.
-    # conditions_met, prompt = evaluate_conditions(frame, original_frame, faces, center, axes)
     conditions_met, prompt = evaluate_conditions_via_api(frame)
 
 
@@ -122,7 +86,6 @@ def process_frame(frame):
 
     return display_frame, conditions_met, True, prompt, center, axes
 
-    
 
 # Main loop to capture and process frames from the webcam
 while True:
@@ -134,7 +97,6 @@ while True:
     if time.time() - start_time < duration:
         # Display loading screen before starting the webcam feed
         show_loading_frame(frame_size, oval_size_ratio)
-        
 
     # Process the captured frame
     display_frame, conditions_met, process_success, prompt, center, axes = process_frame(frame)

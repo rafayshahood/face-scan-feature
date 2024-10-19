@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import cv2
 from utillities import resize_and_pad_image
-from utillities import resize_and_pad_image2
+from utillities import letterbox_image
 from ultralytics import YOLO
 
 glasses_model = None
@@ -18,82 +18,84 @@ def load_models():
     if hair_model is None:
         hair_model = YOLO('./models/hairseg-v8.pt')
 
-# Call load_models() once at server startup (e.g., in the FastAPI startup event)
+import cv2
+import mediapipe as mp
+import numpy as np
+from ultralytics import YOLO
 
+# Initialize MediaPipe Face Mesh
+mp_face_mesh = mp.solutions.face_mesh
+selected_landmarks = [116, 139, 71, 68, 104, 67, 109, 10, 338, 297, 333, 298, 301, 368, 345, 195]
 
-# # Load YOLOv5 models for glasses and headwear detection
-# glasses_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./models/glasses_trained.pt', force_reload=True)
-# headwear_model = torch.hub.load('ultralytics/yolov5', 'custom', path='./models/headwear2.pt', force_reload=True)
-# # Load YOLOv8 hair segmentation model
-# hair_model = YOLO('./models/hairseg-v8.pt')
-
-def detect_hair_in_forehead(image_np, face_landmarks, overlap_threshold=1):
+def detect_hair_in_forehead(image_np, overlap_threshold=1):
+    """
+    Detects hair in the forehead region based on selected landmarks and YOLO hair segmentation.
+    The image is resized before performing both landmark detection and hair segmentation.
+    """
 
     # Resize the frame with letterboxing
-    letterbox_frame, scale, top, left = resize_and_pad_image2(image_np, 640)
+    letterbox_frame = letterbox_image(image_np)
 
-    # Run YOLO model on the letterbox frame for hair segmentation
-    results = hair_model(letterbox_frame)
+    # Convert the resized frame to RGB for MediaPipe
+    image_rgb = cv2.cvtColor(letterbox_frame, cv2.COLOR_BGR2RGB)
+
+    # Detect face and landmarks using MediaPipe
+    with mp_face_mesh.FaceMesh(max_num_faces=1, refine_landmarks=True, min_detection_confidence=0.5) as face_mesh:
+        results = face_mesh.process(image_rgb)
+
+    # Run YOLO model for hair segmentation
+    results_yolo = hair_model(letterbox_frame)
 
     # Initialize the hair mask as None
     hair_mask = None
 
-    # Check if there are any masks in the results
-    if results[0].masks is not None and len(results[0].masks.data) > 0:
+    # Check if there are any masks in the YOLOv8 results
+    if results_yolo[0].masks is not None and len(results_yolo[0].masks.data) > 0:
         # Extract the mask from the results
-        hair_mask = results[0].masks.data[0].cpu().numpy().astype(np.uint8)
-        hair_mask = cv2.resize(hair_mask, (letterbox_frame.shape[1], letterbox_frame.shape[0]))
+        hair_mask = results_yolo[0].masks.data[0].cpu().numpy().astype(np.uint8)
+        hair_mask = cv2.resize(hair_mask, (image_np.shape[1], image_np.shape[0]))  # Resize to match original frame size
 
-        # Optionally dilate the hair mask to make it larger and more tolerant
-        kernel = np.ones((5, 5), np.uint8)
-        hair_mask = cv2.dilate(hair_mask, kernel, iterations=2)
+        # Optionally dilate the hair mask to make it larger
+        # kernel = np.ones((5, 5), np.uint8)
+        # hair_mask = cv2.dilate(hair_mask, kernel, iterations=2)
 
-    # If no hair mask or no face landmarks, return False
-    if hair_mask is None or face_landmarks is None:
-        return False
+    # Ensure there are face landmarks and a hair mask
+    if results.multi_face_landmarks and hair_mask is not None:
+        for face_landmarks in results.multi_face_landmarks:
+            # Collect selected landmark points
+            points = []
+            h, w, _ = image_np.shape
+            for idx in selected_landmarks:
+                landmark = face_landmarks.landmark[idx]
+                x, y = int(landmark.x * w), int(landmark.y * h)
+                points.append((x, y))
 
-    # Get landmarks for the eyes (MediaPipe indexes)
-    left_eye_idxs = [33, 160, 158, 133, 153, 144]
-    right_eye_idxs = [362, 385, 387, 263, 373, 380]
+            # Convert to numpy array for shape drawing
+            points = np.array(points, dtype=np.int32)
 
-    # Convert landmarks to numpy array (for easier calculations)
-    h, w, _ = letterbox_frame.shape
-    landmarks = np.array([(int(pt['x'] * w), int(pt['y'] * h)) for pt in face_landmarks])
+            # Create an empty mask for the polygonal region
+            shape_mask = np.zeros_like(hair_mask)
 
-    # Calculate the center of the ellipse (midpoint of the eyes)
-    left_eye = landmarks[left_eye_idxs].mean(axis=0)
-    right_eye = landmarks[right_eye_idxs].mean(axis=0)
-    midpoint = ((left_eye + right_eye) / 2).astype(int)
+            # Fill the polygonal region inside the selected landmarks
+            cv2.fillPoly(shape_mask, [points], 1)
 
-    # Calculate the ellipse width and height for eyes
-    eye_distance = np.linalg.norm(left_eye - right_eye)
-    ellipse_width = int(eye_distance * 1.7)
-    ellipse_height = int(eye_distance * 0.95)
+            # Check for overlap between the hair mask and the shape mask
+            overlap = cv2.bitwise_and(hair_mask, shape_mask)
 
-    # Shift the midpoint upwards to increase the height above the eyes
-    shifted_midpoint = (midpoint[0], midpoint[1] - int(ellipse_height * 0.3))
+            # Calculate the percentage of hair inside the selected shape
+            hair_pixels = np.sum(hair_mask)
+            overlap_pixels = np.sum(overlap)
 
-    # Create an empty mask for the ellipse
-    ellipse_mask = np.zeros_like(hair_mask)
+            if hair_pixels > 0:
+                overlap_percentage = (overlap_pixels / hair_pixels) * 100
 
-    # Draw the ellipse on the mask
-    cv2.ellipse(ellipse_mask, shifted_midpoint, (ellipse_width // 2, ellipse_height // 2), 0, 0, 360, 1, -1)
+                # Return True if hair is detected inside the shape
+                if overlap_percentage > overlap_threshold:
+                    return True
 
-    # Check for overlap between the hair mask and the ellipse mask
-    overlap = cv2.bitwise_and(hair_mask, ellipse_mask)
-
-    # Calculate the percentage of hair inside the ellipse
-    hair_pixels = np.sum(hair_mask)
-    overlap_pixels = np.sum(overlap)
-
-    if hair_pixels > 0:
-        overlap_percentage = (overlap_pixels / hair_pixels) * 100
-
-        # Set the condition for hair being inside the ellipse
-        if overlap_percentage > overlap_threshold:
-            return True
-
+    # Return False if no hair is detected
     return False
+
 
 
 def is_mouth_closed(face_landmarks, frame_height):

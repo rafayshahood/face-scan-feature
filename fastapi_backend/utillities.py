@@ -22,23 +22,15 @@ def resize_and_pad_image(image_np, target_size=(640, 640)):
 
     return padded_image
 
-def resize_and_pad_image2(image, target_size):
-    """Resizes the image to the target size with letterbox (padding)."""
-    ih, iw = image.shape[:2]
-    scale = min(target_size / iw, target_size / ih)
-    nw, nh = int(iw * scale), int(ih * scale)
-
-    # Resize image
-    resized_image = cv2.resize(image, (nw, nh))
-
-    # Create new image with the target size, padded with black (0)
-    letterbox_image = np.full((target_size, target_size, 3), 0, dtype=np.uint8)
-
-    # Calculate padding
-    top = (target_size - nh) // 2
-    left = (target_size - nw) // 2
-
-    # Place the resized image onto the padded background
-    letterbox_image[top:top + nh, left:left + nw] = resized_image
-
-    return letterbox_image, scale, top, left
+def letterbox_image(image, target_size=(640, 640)):
+    original_height, original_width = image.shape[:2]
+    target_width, target_height = target_size
+    scale = min(target_width / original_width, target_height / original_height)
+    new_width = int(original_width * scale)
+    new_height = int(original_height * scale)
+    resized_image = cv2.resize(image, (new_width, new_height))
+    letterboxed_image = np.zeros((target_height, target_width, 3), dtype=np.uint8)
+    x_offset = (target_width - new_width) // 2
+    y_offset = (target_height - new_height) // 2
+    letterboxed_image[y_offset:y_offset + new_height, x_offset:x_offset + new_width] = resized_image
+    return letterboxed_image

@@ -1,117 +1,103 @@
-# Import necessary libraries
 import cv2
 import time
+import requests
 from utilities import draw_countdown_text, draw_text_on_frame
 from effects import apply_color_effect
-import subprocess
-import time
 import threading
-import tkinter as tk
-import os
 
 def countdown_sequence(cap, frame, center, axes, process_frame, frame_size):
     """
     Handles the countdown sequence and captures an image when conditions are met.
-    
-    :param cap: The video capture object (webcam).
-    :param frame: The current frame from the webcam.
-    :param center: The center of the oval mask used for face positioning.
-    :param axes: The dimensions (axes) of the oval.
-    :param process_frame: Function to process and evaluate each frame.
-    :param frame_size: Size of the frame for capturing the image.
+    Sends the image to the backend for 3D model generation and keeps showing the scan effect until the process is done.
     """
-    
-    timer_start = time.time()  # Record the start time for the countdown
-    countdown = 3  # Set countdown duration (in seconds)
 
-    # Loop through the countdown
+    timer_start = time.time()  # Start time for the countdown
+    countdown = 3  # Countdown duration in seconds
+
+    # Countdown loop
     while countdown > 0:
-        ret, frame = cap.read()  # Capture a new frame from the webcam
+        ret, frame = cap.read()  # Capture a new frame
         if not ret:
-            break  # Exit if frame capture fails
-        
-        # Process the current frame (e.g., face detection, condition checks)
+            break
+
+        # Process the frame (check conditions)
         display_frame, conditions_met, _, prompt, center, axes = process_frame(frame)
 
-        # If conditions are not met, show an error message and stop the countdown
+        # If conditions are not met, stop the countdown
         if not conditions_met:
-            # Set oval color to red (indicating conditions are not met)
             oval_color = (255, 75, 51)  # Red color for conditions not met
             bgr_color = (oval_color[2], oval_color[1], oval_color[0])
-            
-            # Apply a color effect and display the error prompt
             display_frame = apply_color_effect(display_frame, axes, bgr_color)
-            display_frame = draw_text_on_frame(
-                display_frame,
-                text=prompt,  # Display the prompt message
-                center=center,
-                axes=axes,
-                t_size=10,  # Text size for the prompt
-                fill_color=(255, 75, 51),  # Red text color for the prompt
-            )
-            # Show the updated frame
+            display_frame = draw_text_on_frame(display_frame, prompt, center, axes, t_size=10, fill_color=(255, 75, 51))
             cv2.imshow('Webcam', display_frame)
             cv2.waitKey(1)
-            break  # Stop the countdown if conditions are not met
+            break
 
-        # Draw the countdown number on the frame (3, 2, 1, etc.)
-        display_frame = draw_countdown_text(
-            display_frame,
-            text=str(countdown),  # Display the countdown number
-            center=center,  # Position the countdown in the center
-            t_size=50,  # Large text size for countdown visibility
-            fill_color=(0, 139, 183),  # Blue color for countdown
-        )
+        # Display countdown number on the frame
+        display_frame = draw_countdown_text(display_frame, text=str(countdown), center=center, t_size=50, fill_color=(0, 139, 183))
 
-        # Show the updated frame with the countdown
-        cv2.imshow('Webcam', display_frame)
+        cv2.imshow('Webcam', display_frame)  # Show updated frame
         cv2.waitKey(1)
-        
-        # Decrease the countdown number every second
+
+        # Decrease countdown every second
         if time.time() - timer_start >= 1:
-            countdown -= 1  # Decrease countdown by 1
-            timer_start = time.time()  # Reset timer for the next second
+            countdown -= 1
+            timer_start = time.time()
 
-    # If countdown reaches 0 and conditions are met, capture the photo
+    # When countdown reaches 0 and conditions are met, send the image to the backend
     if countdown == 0 and conditions_met:
-        # Save the captured image to a file with reduced quality
-        # Create new directory
-        timestamp = time.strftime("%Y%m%d-%H%M%S")
-        output_dir = f'./model_{timestamp}'
-        os.makedirs(output_dir, exist_ok=True)
+        # Encode the frame as a JPEG image and send it to the backend
+        _, img_encoded = cv2.imencode('.jpg', frame)
 
-        image_path = os.path.join('./capturedImage/captured_image.jpg')
-        output_obj_path = output_dir
-        cv2.imwrite('./capturedImage/captured_image.jpg', frame)
-        print("Picture taken and saved as 'captured_image.jpg'.")
+        # Send the image to the backend for 3D model generation
+        def send_image_to_backend(img_encoded):
+            response = requests.post(
+                'http://127.0.0.1:8000/generate_model/',
+                files={"file": img_encoded.tobytes()}
+            )
+            if response.status_code == 200:
+                print("Image sent to backend successfully.")
+                return response.json().get('task_id')
+            else:
+                print(f"Failed to send image: {response.status_code}")
+                return None
 
-        # Apply a scan effect after capturing the image
-        from utilities import scan_effect
-        model_generation_done = False
+        task_id = send_image_to_backend(img_encoded)
 
-        def run_model_generation():
-            """Runs the 3D model pipeline and updates the status."""
-            nonlocal model_generation_done
-            try:
-                subprocess.run(['python', './3dmodel/pipeline.py', '-i', image_path, '-o', output_obj_path], check=True)
-                print(f"3D model generated and files saved in '{output_dir}'")
-                model_generation_done = True  # Set status to True when the process finishes
-            except subprocess.CalledProcessError as e:
-                print(f"Error in generating 3D model: {e}")
-                model_generation_done = True  # Even on error, consider the process done
+        # Start scan effect while polling for the backend to complete 3D model generation
+        if task_id:
+            model_generation_done = False
+            polling_attempts = 0
+            max_polling_attempts = 10  # Max number of times to poll
 
-       # Start the model generation in a separate thread
-        model_thread = threading.Thread(target=run_model_generation)
-        model_thread.start()
+            def poll_backend_for_status(task_id):
+                nonlocal model_generation_done, polling_attempts
+                while not model_generation_done and polling_attempts < max_polling_attempts:
+                    response = requests.get(f'http://127.0.0.1:8000/check_model_status/{task_id}')
+                    status = response.json().get("status")
+                    if status == "completed":
+                        model_generation_done = True
+                        print("Model generation completed.")
+                    elif status == "failed":
+                        model_generation_done = True
+                        print("Model generation failed.")
+                    else:
+                        print("Model generation in progress...")
+                    polling_attempts += 1
+                    time.sleep(2)  # Poll every 2 seconds
 
-        # Keep showing the animation until the model generation is done
-        while not model_generation_done:
-            ret, frame = cap.read()
-            if not ret:
-                break
-            scan_effect(frame, frame_size)
+            # Run polling in a separate thread
+            status_thread = threading.Thread(target=poll_backend_for_status, args=(task_id,))
+            status_thread.start()
 
-        model_thread.join()  # Ensure the model generation is fully completed
+            # Continue showing the scan effect until model generation completes or fails
+            while not model_generation_done:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                from utilities import scan_effect
+                scan_effect(frame, frame_size)
+            status_thread.join()
 
         # Close the face scan window
         cv2.destroyAllWindows()
